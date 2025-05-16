@@ -1,0 +1,21 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.raj.modulith.modular_monolith.inventory`
+|Spring components
+|_Services_
+
+* `c.r.m.m.i.InventoryService`
+
+_Repositories_
+
+* `c.r.m.m.i.InventoryRepository`
+
+_Event listeners_
+
+* `c.r.m.m.i.InventoryEventListener`
+|Aggregate roots
+|* `c.r.m.m.i.Inventory`
+|Events listened to
+|* `c.r.m.m.s.OrderPlacedEvent` 
+|===

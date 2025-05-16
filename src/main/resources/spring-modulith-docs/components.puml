@@ -1,0 +1,21 @@
+@startuml
+set separator none
+title ModularMonolithApplication
+
+top to bottom direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Component>
+
+Container_Boundary("ModularMonolithApplication.ModularMonolithApplication_boundary", "ModularMonolithApplication", $tags="") {
+  Component(ModularMonolithApplication.ModularMonolithApplication.Inventory, "Inventory", $techn="Module", $descr="", $tags="", $link="")
+  Component(ModularMonolithApplication.ModularMonolithApplication.Orders, "Orders", $techn="Module", $descr="", $tags="", $link="")
+  Component(ModularMonolithApplication.ModularMonolithApplication.Shared, "Shared", $techn="Module", $descr="", $tags="", $link="")
+}
+
+Rel(ModularMonolithApplication.ModularMonolithApplication.Inventory, ModularMonolithApplication.ModularMonolithApplication.Shared, "listens to", $techn="", $tags="", $link="")
+Rel(ModularMonolithApplication.ModularMonolithApplication.Orders, ModularMonolithApplication.ModularMonolithApplication.Shared, "depends on", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+@enduml

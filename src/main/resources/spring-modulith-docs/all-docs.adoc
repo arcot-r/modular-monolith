@@ -1,0 +1,15 @@
+== ModularMonolithApplication
+plantuml::components.puml[,,format=svg]
+
+== Inventory
+plantuml::module-inventory.puml[,,format=svg]
+include::module-inventory.adoc[]
+
+== Orders
+plantuml::module-orders.puml[,,format=svg]
+include::module-orders.adoc[]
+
+== Shared
+plantuml::module-shared.puml[,,format=svg]
+include::module-shared.adoc[]
+
