@@ -1,0 +1,313 @@
+openapi: 3.0.3
+info:
+  title: AI Recommendations API
+  description: >
+    API for generating, retrieving, and actioning AI-driven cash-flow
+    recommendations against customer transactions.
+  version: 1.0.0
+
+servers:
+  - url: https://api.example.com/v1
+    description: Base server URL (update per environment)
+
+tags:
+  - name: AI Recommendations
+    description: Endpoints for AI recommendation job lifecycle and actions
+
+paths:
+
+  /ai-recommendations:
+    post:
+      tags: [AI Recommendations]
+      summary: Trigger AI recommendation generation for a customer
+      operationId: createAiRecommendationJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecommendationJobRequest'
+      responses:
+        '202':
+          description: Job accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRecommendationJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    get:
+      tags: [AI Recommendations]
+      summary: Get recommendations filtered by customer and user
+      operationId: getRecommendationsByCustomerAndUser
+      parameters:
+        - name: custId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: userid
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Matching recommendations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationsListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai-recommendations/{jobId}:
+    get:
+      tags: [AI Recommendations]
+      summary: Get all recommendations produced by a given job
+      operationId: getRecommendationsByJobId
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Recommendations for the job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationsListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai-recommendations/user-action:
+    put:
+      tags: [AI Recommendations]
+      summary: Apply a user action (accept/edit/reject) to a single recommendation
+      operationId: applyUserAction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserActionRequest'
+      responses:
+        '200':
+          description: Action applied successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai-recommendations/bulk-action:
+    put:
+      tags: [AI Recommendations]
+      summary: Apply a bulk action to all recommendations within a job
+      operationId: applyBulkAction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkActionRequest'
+      responses:
+        '200':
+          description: Bulk action applied successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ai-recommendations/{recommendationId}/transactions:
+    get:
+      tags: [AI Recommendations]
+      summary: Get the list of transactions matched/effective for a recommendation
+      operationId: getTransactionsByRecommendationId
+      parameters:
+        - name: recommendationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of transactions associated with the recommendation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+
+  schemas:
+
+    CreateRecommendationJobRequest:
+      type: object
+      required: [customer_id]
+      properties:
+        customer_id:
+          type: string
+
+    CreateRecommendationJobResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+        customer_id:
+          type: string
+
+    UserAction:
+      type: string
+      enum: [ACCEPT, EDIT, REJECT]
+
+    BulkUserAction:
+      type: string
+      enum: [BULK-ACCEPT, BULK-REJECT]
+
+    UserActionRequest:
+      type: object
+      required: [job_id, recommendation_id, user_action]
+      properties:
+        job_id:
+          type: string
+        recommendation_id:
+          type: string
+        user_action:
+          $ref: '#/components/schemas/UserAction'
+
+    BulkActionRequest:
+      type: object
+      required: [job_id, user_action]
+      properties:
+        job_id:
+          type: string
+        user_action:
+          $ref: '#/components/schemas/BulkUserAction'
+
+    RecommendationsListResponse:
+      type: object
+      properties:
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiRecommendation'
+
+    AiRecommendation:
+      type: object
+      description: Maps to the AI_RECOMMENDATIONS data model
+      properties:
+        id:
+          type: string
+        job_id:
+          type: string
+        customer_id:
+          type: string
+        rank:
+          type: integer
+        condition_json:
+          type: object
+          additionalProperties: true
+          description: JSONB - condition definition
+        mapping_rule:
+          type: object
+          additionalProperties: true
+          description: JSONB - mapping rule definition
+        confidence_percentage:
+          type: number
+          format: float
+        confidence_score:
+          type: number
+          format: float
+        transaction_count:
+          type: integer
+        matched_transaction_ids:
+          type: array
+          items:
+            type: string
+        effective_transaction_ids:
+          type: array
+          items:
+            type: string
+        review_status:
+          type: string
+        activation_eligible:
+          type: boolean
+        cash_direction:
+          type: string
+        rule_condition_phrase:
+          type: string
+        mapped_category_name:
+          type: string
+        reason_code:
+          type: string
+        reason_text:
+          type: string
+        model_evidence_json:
+          type: object
+          additionalProperties: true
+        created_ts:
+          type: string
+          format: date-time
+
+    Transaction:
+      type: object
+      description: Maps to the TRANSACTIONS data model
+      properties:
+        id:
+          type: string
+        customer_id:
+          type: string
+        transaction_id:
+          type: string
+        job_id:
+          type: string
+        txn_type:
+          type: string
+        txn_amount:
+          type: number
+          format: float
+        txn_date:
+          type: string
+          format: date
+        txn_desc:
+          type: string
+        category_code:
+          type: string
+        category_type:
+          type: string
+        cust_ref:
+          type: string
+        bank_ref:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
